@@ -28,15 +28,20 @@ export async function authCallback(req:Request, res:Response, next:Function) {
             return res.status(401).json({ message: "Unauthorized - invalid token" });
         }
     
-        let user = await User.findById(clerkId);
+        let user = await User.findOne({ clerkId });
         if (!user) {
             const clerkUser = await clerkClient.users.getUser(clerkId);
+            const primaryEmail = clerkUser.emailAddresses[0]?.emailAddress;
+            if (!primaryEmail) {
+                return res.status(400).json({ message: "Unable to sync user: no email on Clerk profile" });
+            }
+
             user = await User.create({
                 clerkId,
                 name: clerkUser.firstName
                 ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
-                : clerkUser.emailAddresses[0]?.emailAddress.split('@')[0],
-                email: clerkUser.emailAddresses[0]?.emailAddress,
+                : primaryEmail.split("@")[0],
+                email: primaryEmail,
                 avatar: clerkUser.imageUrl ,
             }); 
         }
