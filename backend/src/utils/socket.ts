@@ -5,9 +5,6 @@ import { User } from "../models/User";
 import { Chat } from "../models/Chat";
 import { Message } from "../models/Message";
 
-interface SocketWithUserId extends Socket {
-    userId: string;
-}
 
 // store online users in memory : userId -> socketId
 export const onlineUsers: Map<string, string> = new Map();
@@ -16,8 +13,8 @@ export const initializeSocket = (httpServer: HttpServer) => {
     const allowedOrigins = [
         "http://localhost:8091",
         "http://localhost:5173", 
-        process.env.FRONTEND_URL as string,
-    ];
+        process.env.FRONTEND_URL,
+    ].filter((origin): origin is string => Boolean(origin));
 
     const io = new SoketServer(httpServer, {cors:{origin: allowedOrigins}});
 
@@ -35,7 +32,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
                 return next(new Error("Authentication error: User not found"));
             }
 
-            (socket as SocketWithUserId).userId = user._id.toString();
+            socket.data.userId = user._id.toString();
 
             next();
 
@@ -45,7 +42,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
         }   
 
         io.on("connection", (socket) => {
-            const userId = (socket as SocketWithUserId).userId;
+            const userId = socket.data.userId;
 
             // send list currently online users to the newly connected user
             socket.emit("online-users", {userIds: Array.from(onlineUsers.keys())});
