@@ -8,7 +8,8 @@ const {width, height} = Dimensions.get('window');
 
 const AuthScreen = () => {
   const { handleSocialAuth, loadingStrategy } = useSocialAuth();
-  
+  const isLoading = loadingStrategy !== null;
+
   return (
     <View className='flex-1 bg-surface-dark ' >
       {/* todo : animated orbs */}
@@ -45,8 +46,10 @@ const AuthScreen = () => {
             {/* google btn */}
             <Pressable
               className='flex-1 flex-row items-center justify-center gap-2  bg-white/95 py-4 rounded-2xl active:scale-95 '
-              disabled={loadingStrategy === 'oauth_google'}
-              onPress={()=>handleSocialAuth('oauth_google')}
+              disabled={isLoading}
+              accessibilityRole='button'
+              accessibilityLabel='Continue with Google'
+              onPress={()=> !isLoading && handleSocialAuth('oauth_google')}
             >
               {loadingStrategy === 'oauth_google' ? (
                 <ActivityIndicator size='small' color='#1a1a1a'/>
@@ -62,8 +65,10 @@ const AuthScreen = () => {
             {/* apple btn */}
             <Pressable
               className='flex-1 flex-row items-center justify-center gap-2  bg-white/10 border border-white/20 py-4 rounded-2xl active:scale-95 '
-              disabled={loadingStrategy === 'oauth_apple'}
-              onPress={()=>handleSocialAuth('oauth_apple')}
+              disabled={isLoading}
+              accessibilityRole='button'
+              accessibilityLabel='Continue with Apple'
+              onPress={()=> !isLoading && handleSocialAuth('oauth_apple')}
             >
               {loadingStrategy === 'oauth_apple' ? (
                 <ActivityIndicator size='small' color='#ffffff'/>
