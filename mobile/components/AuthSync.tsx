@@ -15,12 +15,12 @@ const AuthSync = () => {
 
             syncUser(undefined, {
                 onSuccess: (data) => {
-                    console.log("User synced successfully : ", data.user.name);
+                    console.log("User synced successfully data.name : ", data.user.name);
                     Sentry.logger.info(
-                        Sentry.logger.fmt`User Auth Synced with backend: ${data.user.id} - ${data.user.email}`,
+                        Sentry.logger.fmt`User Auth Synced with backend: ${data.user._id} - ${data.user.name}`,
                         {
-                            userId: data.user.id,
-                            email: data.user.email,
+                            userId: data.user._id,
+                            name: data.user.name,
                         }
                     );
                 },
@@ -29,7 +29,7 @@ const AuthSync = () => {
                     Sentry.logger.error('failed to sync user auth with backend', 
                         {
                             userId: user.id,
-                            email: error instanceof Error ? error.message : String(error),
+                            errorMessage: error instanceof Error ? error.message : String(error),
                         }
                     );
                 }
