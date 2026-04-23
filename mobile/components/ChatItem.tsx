@@ -2,7 +2,7 @@ import { View, Text, Pressable } from 'react-native'
 import React from 'react'
 import { Chat } from '@/types';
 import { Image } from 'expo-image';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
 
 const ChatItem = ({chat, onPress}: { chat: Chat; onPress: () => void }) => {
 
@@ -29,9 +29,9 @@ const ChatItem = ({chat, onPress}: { chat: Chat; onPress: () => void }) => {
           <View className='flex-row items-center gap-2' >
             {hasUnread && <View className='w-2.5 h-2.5 bg-primary rounded-full' />}
             <Text className='text-xs text-subtitle-foreground' >
-              {chat.lastMessageAt
-              ? formatDistanceToNow(new Date(chat.lastMessageAt), { addSuffix: false })
-              : "No messages yet"}
+              {chat.lastMessageAt && isValid(parseISO(chat.lastMessageAt))
+                ? formatDistanceToNow(parseISO(chat.lastMessageAt), { addSuffix: false })
+                : "No messages yet"}              
             </Text>
           </View>
         </View>

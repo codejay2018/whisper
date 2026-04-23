@@ -8,7 +8,7 @@ import { Text,  View, ActivityIndicator, FlatList, Pressable } from 'react-nativ
 
 const ChatsTab = () => {
   const router = useRouter();
-  const { data: chats, isLoading, error } = useChats();
+  const { data: chats, isLoading, error, refetch } = useChats();
   if(isLoading) {
     return (
     <View className='flex-1 bg-surface items-center justify-center' >
@@ -20,7 +20,10 @@ const ChatsTab = () => {
   if(error) {
     return (
       <View className='flex-1 bg-surface items-center justify-center' >
-        <Text className='text-red-500 text-lg' >Failed to load chats.</Text>
+        <Text className='text-red-500 text-3xl' >Failed to load chats.</Text>
+        <Pressable className='mt-4 px-4 py-2 bg-primary rounded-lg ' onPress={() => refetch()}>
+          <Text className='text-foreground text-2xl' >Retry</Text>
+        </Pressable>
       </View>
     )
   }
