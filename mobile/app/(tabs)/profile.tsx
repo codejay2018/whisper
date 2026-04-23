@@ -51,6 +51,20 @@ const ProfileTab = () => {
     }
   };
 
+  if(!user) {
+    return (
+      <ScrollView 
+        className='bg-surface' 
+        contentInsetAdjustmentBehavior="automatic" 
+        showsVerticalScrollIndicator={false}>
+        <View className='items-center mt-32 px-6'>
+          <Text className='text-foreground text-2xl font-semibold'>Profile unavailable</Text>
+          <Text className='text-muted-foreground mt-2 text-center'>Please sign in to view your profile details.</Text>
+        </View>
+      </ScrollView>
+    );    
+  }
+
   return (
     <ScrollView 
       className='bg-surface' 
@@ -89,7 +103,9 @@ const ProfileTab = () => {
               {section.items.map((item, index) => (
                 <Pressable
                   key={item.label}
-                  className='flex-row items-center px-4 py-3.5 active:bg-surface-light ${index < section.items.length - 1 ? "border-b border-surface-light" : ""}'
+                  className={`flex-row items-center px-4 py-3.5 active:bg-surface-light ${
+                    index < section.items.length - 1 ? 'border-b border-surface-light' : ''
+                  }`}
                 >
                   <View
                     className='w-9 h-9 rounded-xl items-center justify-center'
