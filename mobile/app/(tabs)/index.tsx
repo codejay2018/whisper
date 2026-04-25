@@ -33,9 +33,9 @@ const ChatsTab = () => {
       pathname: "/chat/[id]",
       params: { 
         id: chat._id,
-        participantId: chat.participants._id,
-        name: chat.participants.name,
-        avatar: chat.participants.avatar 
+        participantId: chat.participant._id,
+        name: chat.participant.name,
+        avatar: chat.participant.avatar 
       }
     });
   };
@@ -58,7 +58,7 @@ const ChatsTab = () => {
           iconName='chatbubbles-outline'
           iconColor='#6b6b70'
           buttonlabel='New Chat'
-          onButtonPress={() => console.log("New Chat Pressed")}
+          onButtonPress={() => router.push('/new-chat')}
         />}
       />
     </View>
@@ -68,11 +68,15 @@ const ChatsTab = () => {
 export default ChatsTab;
 
 function Header() {
+  const router = useRouter();
   return (
     <View className='px-5 pt-2 pb-4'>
       <View className='flex-row items-center justify-between' >
         <Text className='text-2xl font-bold text-foreground' >Chats</Text>
-        <Pressable className=' size-10 bg-primary rounded-full items-center justify-center'>
+        <Pressable 
+          className=' size-10 bg-primary rounded-full items-center justify-center'
+          onPress={() => router.push('/new-chat')}
+        >
           <Ionicons name="create-outline" size={20} color="#0d0d0f" />
         </Pressable>
       </View>
