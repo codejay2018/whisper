@@ -97,8 +97,29 @@ export const initializeSocket = (httpServer: HttpServer) => {
                 }
             });
 
-            // DOTO: later
-            socket.on("typing", async (data) => {});
+            socket.on("typing", async (data: {chatId:string, isTyping:boolean}) => {
+                const typingPayload = {
+                    userId,
+                    chatId: data.chatId,
+                    isTyping: data.isTyping,
+                };
+
+                // emit to chat room ( for users inside the chat)
+                socket.to(`chat:${data.chatId}`).emit('typing', typingPayload); 
+
+                // also emit to other participant's personal room ( for chat list view)
+                try{
+                    const chat = await Chat.findById(data.chatId);
+                    if(chat){
+                        const otherPaticipantId = chat.participants.find((p:any)=>p.toString !== userId);
+                        if(otherPaticipantId){
+                            socket.to(`user:${otherPaticipantId}`).emit('typing', typingPayload);
+                        }
+                    }
+                }catch{}{
+                    // silently fail - typing indicator is not critical
+                };
+            });
 
             socket.on("disconnect", () => {
                 onlineUsers.delete(userId);

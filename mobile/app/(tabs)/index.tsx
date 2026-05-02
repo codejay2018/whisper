@@ -18,6 +18,9 @@ const ChatsTab = () => {
   }
 
   if(error) {
+    
+    console.log(`ChatsTab Error : ${error}`);
+
     return (
       <View className='flex-1 bg-surface items-center justify-center' >
         <Text className='text-red-500 text-3xl' >Failed to load chats.</Text>

@@ -3,14 +3,18 @@ import React from 'react'
 import { Chat } from '@/types';
 import { Image } from 'expo-image';
 import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
+import { useSocketStore } from '@/lib/socket';
 
 const ChatItem = ({chat, onPress}: { chat: Chat; onPress: () => void }) => {
 
   const participant =  chat.participant;
-  const isOnline = true;
-  const isTyping = false;
-  const hasUnread = false;
 
+  const { onlineUsers, typingUsers, unreadChats} = useSocketStore();
+
+  const isOnline = onlineUsers.has(participant._id);
+  const isTyping = typingUsers.get(chat._id) === participant._id;
+  const hasUnread = unreadChats.has(chat._id);
+ 
   // Assuming the first participant is the one to display, adjust as needed
   return (
     <Pressable onPress={onPress} className='flex-row items-center py-3 active:opacity-70' >

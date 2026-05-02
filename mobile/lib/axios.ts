@@ -2,13 +2,23 @@ import { useAuth } from '@clerk/expo';
 import axios from 'axios';
 import { useCallback, useEffect } from 'react';
 import * as Sentry from '@sentry/react-native';
+import { Platform } from 'react-native';
 
 
-const API_BASE_URL = 'http://localhost:3000/api';
+// export const BASE_URL = 'http://localhost:3000';
+// const API_BASE_URL = `${BASE_URL}/api`;
+
+export function GET_BASE_URL(){
+  return Platform.OS === "android"
+    ? "http://10.0.2.2:3000"
+    : "http://localhost:3000";
+}
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {    'Content-Type': 'application/json',   },
+  baseURL: `${GET_BASE_URL()}/api`,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // Response interceptor registered once to log all API errors to Sentry
