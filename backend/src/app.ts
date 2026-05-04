@@ -1,5 +1,7 @@
 import express from 'express';
 import path from 'path';
+import cors from 'cors';
+
 import authRoute from './routes/authRoute';
 import chatRoute from './routes/chatRoute';
 import messageRoute from './routes/messageRoute';
@@ -8,6 +10,17 @@ import { clerkMiddleware } from '@clerk/express';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
+
+const allowedOrigins = [
+'http://localhost:8081',    // expo mobile
+'http://localhost:5173',    // vite web dev
+process.env.FRONTEND_URL!,  // production
+].filter(Boolean);
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials:true // allow credentials from client (cookie, authorization, headers, etc.)
+}));
 
 app.use(express.json());
 app.use(clerkMiddleware()); // Add Clerk middleware for authentication  

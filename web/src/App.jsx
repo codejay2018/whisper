@@ -1,22 +1,31 @@
-import './App.css'
-import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/react'
+import { Show, SignInButton, SignUpButton, useAuth, UserButton } from '@clerk/react'
+import { Navigate, Route, Routes } from 'react-router'
+import HomePage from './pages/HomePage'
+import ChatPage from './pages/ChatPage'
+import PageLoader from './components/PageLoader';
+import useUserSync from './hooks/useUserSync';
 
 function App() {
+
+  const { isLoaded, isSignedIn } = useAuth();
+
+  console.log('isLoaed : ', isLoaded);
+  console.log('isSignedIn : ', isSignedIn);
+
+  useUserSync();
+
+  if(!isLoaded) return <PageLoader/>
+
+  console.log('isLoaed : ', isLoaded);
+  console.log('isSignedIn : ', isSignedIn);
+
+
   return (
-    <>
-      <header>
-        <h1>Whisper</h1>
-        <Show when="signed-out">
-          <SignInButton mode='modal' />
-          <span> | </span>
-          <SignUpButton mode='modal' />
-        </Show>
-        <Show when="signed-in">
-          <UserButton />
-        </Show>
-      </header>
-    </>
-  )
+    <Routes>
+      <Route path='/' element={!isSignedIn ? <HomePage/> : <Navigate to={'/chat'}/>}/>
+      <Route path='/chat' element={ isSignedIn ? <ChatPage/> : <Navigate to={'/'}/>}/>
+    </Routes>
+  );
 }
 
-export default App
+export default App;
