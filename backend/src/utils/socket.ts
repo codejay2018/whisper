@@ -1,10 +1,9 @@
 import { Server as HttpServer } from "http";
-import { Socket, Server as SoketServer } from "socket.io";
+import { Server as SocketServer } from "socket.io";
 import { verifyToken } from "@clerk/express";
 import { User } from "../models/User";
 import { Chat } from "../models/Chat";
 import { Message } from "../models/Message";
-
 
 // store online users in memory : userId -> socketId
 export const onlineUsers: Map<string, string> = new Map();
@@ -12,20 +11,23 @@ export const onlineUsers: Map<string, string> = new Map();
 export const initializeSocket = (httpServer: HttpServer) => {
     const allowedOrigins = [
         "http://localhost:8091",
-        "http://localhost:5173", 
+        "http://localhost:5173",
         process.env.FRONTEND_URL,
     ].filter((origin): origin is string => Boolean(origin));
 
-    const io = new SoketServer(httpServer, {cors:{origin: allowedOrigins}});
+    const io = new SocketServer(httpServer, { cors: { origin: allowedOrigins } });
 
-    io.use( async (socket, next) => {
+    // ✅ 미들웨어: 인증만 처리하고 next() 호출
+    io.use(async (socket, next) => {
         const token = socket.handshake.auth.token;
         if (!token) {
             return next(new Error("Authentication error: No token provided"));
         }
 
         try {
-            const session = await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY as string });
+            const session = await verifyToken(token, {
+                secretKey: process.env.CLERK_SECRET_KEY as string,
+            });
             const clerkId = session.sub;
             const user = await User.findOne({ clerkId });
             if (!user) {
@@ -33,100 +35,103 @@ export const initializeSocket = (httpServer: HttpServer) => {
             }
 
             socket.data.userId = user._id.toString();
-
             next();
 
         } catch (error: any) {
             console.error("Socket authentication error:", error);
             return next(new Error(error));
-        }   
+        }
+    });
 
-        io.on("connection", (socket) => {
-            const userId = socket.data.userId;
+    // ✅ connection 핸들러: 미들웨어 밖에서 한 번만 등록
+    io.on("connection", (socket) => {
+        const userId = socket.data.userId;
 
-            // send list currently online users to the newly connected user
-            socket.emit("online-users", {userIds: Array.from(onlineUsers.keys())});
+        // send list of currently online users to the newly connected user
+        socket.emit("online-users", { userIds: Array.from(onlineUsers.keys()) });
 
-            // store user in the online users map
-            onlineUsers.set(userId, socket.id);
+        // store user in the online users map
+        onlineUsers.set(userId, socket.id);
 
-            // notify others that this user is now online
-            socket.broadcast.emit("user-online", { userId });
+        // notify others that this user is now online
+        socket.broadcast.emit("user-online", { userId });
 
-            socket.join(`user:${userId}`);
-            
-            socket.on("join-chat", (chatId:string) => {
-                socket.join(`chat:${chatId}`);
-            });
-            
-            socket.on("leave-chat", (chatId:string) => {
-                socket.leave(`chat:${chatId}`);
-            });
+        socket.join(`user:${userId}`);
 
-            // hnadle sending message
-            socket.on("send-message", async (data: { chatId: string, text: string }) => {
-                try {
-                    const { chatId, text } = data;
-                    const chat = await Chat.findOne({ _id: chatId, participants: userId });
-                    if (!chat) {
-                        return socket.emit("socket-error", { message: "Chat not found" });
-                    }
+        socket.on("join-chat", (chatId: string) => {
+            socket.join(`chat:${chatId}`);
+        });
 
-                    const message = await Message.create({
-                        chat: chatId,
-                        sender: userId,
-                        text,
-                    });
+        socket.on("leave-chat", (chatId: string) => {
+            socket.leave(`chat:${chatId}`);
+        });
 
-                    chat.lastMessage = message._id;
-                    chat.lastMessageAt = new Date();
-                    await chat.save();
+        // handle sending message
+        socket.on("send-message", async (data: { chatId: string; text: string }) => {
+            try {
+                const { chatId, text } = data;
 
-                    await message.populate("sender", "name avatar");
-
-                    // emit to chat room : for users inside the chat
-                    io.to(`chat:${chatId}`).emit("new-message", message);
-
-                    // also emit to participants personal rooms
-                    for (const participantId of chat.participants) {
-                        io.to(`user:${participantId}`).emit("new-message", message);
-                    }
-                } catch (error) {
-                    console.error("Error sending message:", error);
-                    socket.emit("socket-error", { message: "Failed to send message" }); 
+                const chat = await Chat.findOne({ _id: chatId, participants: userId });
+                if (!chat) {
+                    return socket.emit("socket-error", { message: "Chat not found" });
                 }
-            });
 
-            socket.on("typing", async (data: {chatId:string, isTyping:boolean}) => {
-                const typingPayload = {
-                    userId,
-                    chatId: data.chatId,
-                    isTyping: data.isTyping,
-                };
+                const message = await Message.create({
+                    chat: chatId,
+                    sender: userId,
+                    text,
+                });
 
-                // emit to chat room ( for users inside the chat)
-                socket.to(`chat:${data.chatId}`).emit('typing', typingPayload); 
+                chat.lastMessage = message._id;
+                chat.lastMessageAt = new Date();
+                await chat.save();
 
-                // also emit to other participant's personal room ( for chat list view)
-                try{
-                    const chat = await Chat.findById(data.chatId);
-                    if(chat){
-                        const otherPaticipantId = chat.participants.find((p:any)=>p.toString !== userId);
-                        if(otherPaticipantId){
-                            socket.to(`user:${otherPaticipantId}`).emit('typing', typingPayload);
-                        }
+                await message.populate("sender", "name avatar");
+
+                // emit to chat room: for users inside the chat
+                io.to(`chat:${chatId}`).emit("new-message", message);
+
+                // also emit to participants' personal rooms
+                for (const participantId of chat.participants) {
+                    io.to(`user:${participantId}`).emit("new-message", message);
+                }
+
+            } catch (error) {
+                console.error("Error sending message:", error);
+                socket.emit("socket-error", { message: "Failed to send message" });
+            }
+        });
+
+        socket.on("typing", async (data: { chatId: string; isTyping: boolean }) => {
+            const typingPayload = {
+                userId,
+                chatId: data.chatId,
+                isTyping: data.isTyping,
+            };
+
+            // emit to chat room (for users inside the chat)
+            socket.to(`chat:${data.chatId}`).emit("typing", typingPayload);
+
+            // also emit to other participant's personal room (for chat list view)
+            try {
+                const chat = await Chat.findById(data.chatId);
+                if (chat) {
+                    const otherParticipantId = chat.participants.find(
+                        (p: any) => p.toString() !== userId
+                    );
+                    if (otherParticipantId) {
+                        socket.to(`user:${otherParticipantId}`).emit("typing", typingPayload);
                     }
-                }catch{}{
-                    // silently fail - typing indicator is not critical
-                };
-            });
+                }
+            } catch {
+                // silently fail - typing indicator is not critical
+            }
+        });
 
-            socket.on("disconnect", () => {
-                onlineUsers.delete(userId);
-                socket.broadcast.emit("user-offline", { userId });  
-            });
-
-        }); 
+        socket.on("disconnect", () => {
+            onlineUsers.delete(userId);
+            socket.broadcast.emit("user-offline", { userId });
+        });
     });
 
     return io;

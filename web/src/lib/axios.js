@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-
-export function GET_BASE_URL(){
-  return "http://localhost:3000";
+const apiUrl = import.meta.env.VITE_API_URL
+if(!apiUrl){
+  console.error('VITE_API_URL environment variable is not set');
 }
 
 const api = axios.create({
-  baseURL: `${GET_BASE_URL()}/api`,
+  baseURL: apiUrl +  '/api',
   withCredentials:true,
 });
 
