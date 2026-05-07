@@ -1,10 +1,7 @@
-// import { useUser } from '@clerk/react';
 import {formatTime} from '../lib/utils';
 
 export function MessageBubble({message, currentUser}){
-  // const {user} = useUser();
   const isMe = message.sender?._id === currentUser?._id;
-
   return (
     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
       <div className={`max-w-md px-4 py-2.5 rounded-2xl 

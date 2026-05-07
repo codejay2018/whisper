@@ -1,23 +1,24 @@
-import { useAuth, UserButton, useUser } from '@clerk/react';
+import { useAuth, UserButton } from '@clerk/react';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, Link } from 'react-router';
-import { useSocketStore } from '../lib/socket';
-import { useSocketConnection } from '../hooks/useSocketConnection';
-import { useMessages } from '../hooks/useMessages';
-import { useChats, useGetOrCreateChat } from '../hooks/useChats';
 import { MessageSquareIcon, PlusIcon, SparklesIcon } from 'lucide-react';
-import ChatListItem from '../components/ChatListItem';
+
+import { useSocketStore } from '../lib/socket';
+
+import { useChats, useGetOrCreateChat } from '../hooks/useChats';
+import { useMessages } from '../hooks/useMessages';
+import { useSocketConnection } from '../hooks/useSocketConnection';
+import { useCurrentUser } from '../hooks/useCurrentUser';
+
+import { ChatListItem } from '../components/ChatListItem';
 import { ChatHeader } from '../components/ChatHeader';
 import { MessageBubble } from '../components/MessageBubble';
 import { ChatInput } from '../components/ChatInput';
-import { useCurrentUser } from '../hooks/useCurrentUser';
 import { NewChatModal } from '../components/NewChatModal';
 
 function ChatPage() {
 
   const { data:currentUser } = useCurrentUser();
-  // const { signOut } = useAuth();
-  // const { user } = useUser();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -51,7 +52,7 @@ function ChatPage() {
   const handleSend = (e) => {
     e.preventDefault();
     
-    // if(!user) return;
+    if(!currentUser) return;
     if(!socket) return;
     if(!activeChatId ) return;
 
@@ -138,7 +139,9 @@ function ChatPage() {
                   <span className='loading loading-spinner loading-md text-amber-400' />
                 </div>
               )}
-              {messages.length === 0 && <NoMessagesUI/>}
+              
+              {messages.length === 0 && !messagesLoading && <NoMessagesUI/>}
+
               {messages.length > 0 && (
                 messages.map(msg => <MessageBubble key={msg.id} message={msg} currentUser={currentUser} />)
               )}

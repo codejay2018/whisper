@@ -1,8 +1,7 @@
 import {useSocketStore} from '../lib/socket';
 import {formatTime} from '../lib/utils';
 
-
-function ChatListItem({chat, isActive, onClick}) {
+export function ChatListItem({chat, isActive, onClick}) {
   
   const { onlineUsers, typingUsers } = useSocketStore();
   const isOnline = onlineUsers.has(chat.participant?._id);
@@ -37,5 +36,3 @@ function ChatListItem({chat, isActive, onClick}) {
     </button>
   )
 }
-
-export default ChatListItem

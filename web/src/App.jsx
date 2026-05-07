@@ -9,16 +9,9 @@ function App() {
 
   const { isLoaded, isSignedIn } = useAuth();
 
-  console.log('isLoaed : ', isLoaded);
-  console.log('isSignedIn : ', isSignedIn);
-
   useUserSync();
 
   if(!isLoaded) return <PageLoader/>
-
-  console.log('isLoaed : ', isLoaded);
-  console.log('isSignedIn : ', isSignedIn);
-
 
   return (
     <Routes>

@@ -3,7 +3,6 @@ import { useSocketStore } from "../lib/socket";
 export function ChatHeader({ participant, chatId }) {
   const { onlineUsers, typingUsers } = useSocketStore();
   const isOnline = onlineUsers.has(participant?._id);
-  // const isTyping = !!typingUsers.get(chatId);
   const typingUserId = typingUsers.get(chatId);
   const isTyping = typingUserId && typingUserId === participant?._id;
 

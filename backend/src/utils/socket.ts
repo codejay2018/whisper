@@ -70,14 +70,11 @@ export const initializeSocket = (httpServer: HttpServer) => {
         socket.on("send-message", async (data: { chatId: string; text: string }) => {
             try {
                 const { chatId, text } = data;
-                console.log("채팅이 들어와요 : " + chatId + ", " + text);
 
                 const chat = await Chat.findOne({ _id: chatId, participants: userId });
                 if (!chat) {
                     return socket.emit("socket-error", { message: "Chat not found" });
                 }
-
-                console.log("chat 을 찾아요 : ", chat);
 
                 const message = await Message.create({
                     chat: chatId,
