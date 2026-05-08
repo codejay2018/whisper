@@ -119,10 +119,11 @@ export const Message = mongoose.model<IChat>("Message", MessageSchema);
 ```
 ## 인증은 Clerk를 사용한다.
 ## socket.io 로 실시간 통신을 구현한다.
-## 배포는 sevella에 한다.
+## 배포는 sevalla에 한다.
 1. express에 react 빌드 포함하기
     ```
     web % bun run build
+    dist 폴더 생성됨.
     ```
 2. backend/app.js 추가
     ```
@@ -135,6 +136,19 @@ export const Message = mongoose.model<IChat>("Message", MessageSchema);
       });
     }
     ```
+    ```
+    순서역할
+    
+    1️⃣ API 라우트/api/... 요청 처리
+    2️⃣ express.staticJS, CSS, 이미지 등 정적 파일
+    3️⃣ /{*any} 폴백나머지 모든 요청 → index.html
+
+    Express는 위에서 아래로 순서대로 미들웨어를 실행하기 때문에 순서가 매우 중요합니다.
+    ```
+3. sevalla에서 빌드시 사용할 Docker 설정
+- Dockerfile
+- .dockerignore
+
 # Web
 ```
 web % bun create vite .
@@ -142,6 +156,20 @@ web % bun create vite .
   javascript or typescript
   나머진 디폴트
 ```
+## react-router
+```
+web % bun add react-router
+```
+## tailwind
+```
+web  % bun add tailwindcss @tailwindcss/vite
+```
+## daisyui
+```
+web  % bun add -D daisyui@latest
+```
+- vscode extension you need
+
 
 # Mobile
 ```
@@ -162,6 +190,44 @@ whispser % git commit -m "initial commit"
 ...or push an existing repository from the command line
 복사해서 실행
 ```
+## 기본생성 프로젝트 초기화
+```
+mobile % bun run reset-project
+```
+- y
+- 생성된 app-example 폴더 제거
+## 실행
+```
+mobile % bunx expo start
+```
+## Nativewind 설정
+- mobile/tainwind.config.js
+- mobile/global.css
+- mobile/babel.config.js
+- mobile/metro.config.js
+- mobile/tainwind.config.js
+- mobile/app/_layout.tsx
+  ```
+  import '../global.css';
+  ```
+## Tanstack 설정
+```
+mobile % bun add @tanstack/react-query
+```
+## Axios 설정
+```
+mobile % bun add axios
+```
+## Sentry 설정( 버그 리포트 )
+```
+mobile % bunx expo prebuild
+
+mobile $ bunx expo run:ios
+or
+mobile $ bunx expo run:android
+
+```
+
 
 
 

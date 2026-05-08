@@ -29,6 +29,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is healthy' });
 });
 
+// 1. API 라우트 먼저 : /api/... 요청 처리
 app.use("/api/auth", authRoute);
 app.use("/api/chats", chatRoute);   
 app.use("/api/messages", messageRoute);   
@@ -37,8 +38,11 @@ app.use(errorHandler); // Add error handling middleware
 
 // serve frontend in production
 if(process.env.NODE_ENV === 'production') {
+  // 2. 그 다음 정적 파일 : JS, CSS, 이미지 등 정적 파일
   app.use(express.static(path.join(__dirname, '../../web/dist')));
   
+  // 3. 마지막에 SPA 폴백 : 나머지 모든 요청 → index.html
+  // Express는 위에서 아래로 순서대로 미들웨어를 실행하기 때문에 순서가 매우 중요합니다.
   app.get('/{*any}', (_, res) => {
     res.sendFile(path.join(__dirname, '../../web/dist/index.html'));
   });
